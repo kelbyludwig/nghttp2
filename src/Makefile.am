@@ -56,7 +56,7 @@ LDADD = $(top_builddir)/lib/libnghttp2.la \
 
 if ENABLE_APP
 
-bin_PROGRAMS += nghttp nghttpd nghttpx
+bin_PROGRAMS += nghttp nghttpd nghttpx fuzz
 
 HELPER_OBJECTS = util.cc \
 	http2.cc timegm.c app_helper.cc nghttp2_gzip.c
@@ -78,6 +78,10 @@ nghttp_SOURCES = ${HELPER_OBJECTS} ${HELPER_HFILES} nghttp.cc nghttp.h \
 nghttpd_SOURCES = ${HELPER_OBJECTS} ${HELPER_HFILES} nghttpd.cc \
 	ssl.cc ssl.h \
 	HttpServer.cc HttpServer.h
+
+fuzz_SOURCES = ${HELPER_OBJECTS} ${HELPER_HFILES} fuzz.c \
+	${HTML_PARSER_OBJECTS} ${HTML_PARSER_HFILES} \
+	ssl.cc ssl.h
 
 bin_PROGRAMS += h2load
 
