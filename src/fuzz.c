@@ -88,6 +88,8 @@ void fuzz_frame(void) {
     callbacks.on_frame_recv_callback = on_frame_recv_callback;
     callbacks.on_begin_frame_callback = on_begin_frame_callback;
     nghttp2_session_client_new(&session, &callbacks, &user_data);
+    nghttp2_inbound_frame *iframe = &session->iframe;
+    iframe->state = NGHTTP2_IB_READ_HEAD;
 
     // Read input
     memset(input, 0, 1033);
