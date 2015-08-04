@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 #include <unistd.h>
 
@@ -74,12 +75,12 @@ static int on_frame_recv_callback(nghttp2_session *session _U_,
 /*
  * Fuzzing Functions
  */
-void fuzz_data(void) {
+void fuzz_frame(void) {
     nghttp2_session *session;
     nghttp2_session_callbacks callbacks;
     my_user_data user_data;
-    nghttp2_frame_hd hd;
-    uint8_t buf[4096]; 
+
+    uint8_t input[1033];
 
     // Create session
     memset(&callbacks, 0, sizeof(nghttp2_session_callbacks));
@@ -89,29 +90,19 @@ void fuzz_data(void) {
     nghttp2_session_client_new(&session, &callbacks, &user_data);
 
     // Read input
-    memset(buf, 0, 4096);
-    ssize_t input_size = read(0, buf, 4096);
+    memset(input, 0, 1033);
+    ssize_t length = read(0, input, 1033);
+    assert(length >= 9);
 
-    // Create DATA Frame
-    hd.length = input_size;
-    hd.type = NGHTTP2_DATA;
-    hd.flags = NGHTTP2_FLAG_NONE;
-    hd.stream_id = 1;
-    nghttp2_frame_pack_frame_hd(buf, &hd);
-
-    // Send DATA Frame
+    // Send Frame
     user_data.data_chunk_recv_cb_called = 0;
     user_data.frame_recv_cb_called = 0;
-    nghttp2_session_mem_recv(session, buf, NGHTTP2_FRAME_HDLEN + input_size);
+    nghttp2_session_mem_recv(session, input, length);
 
-    return;
-}
-
-void fuzz_headers(void){
     return;
 }
 
 int main(int argc, char **argv){
-  fuzz_data();
+  fuzz_frame();
   return 0;
 }
