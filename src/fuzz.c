@@ -94,7 +94,8 @@ void fuzz_frame(void) {
     // Read input
     memset(input, 0, 1033);
     ssize_t length = read(0, input, 1033);
-    assert(length >= 9);
+    if(length < 9)
+        return;
 
     // Send Frame
     user_data.data_chunk_recv_cb_called = 0;
