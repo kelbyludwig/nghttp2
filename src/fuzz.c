@@ -97,6 +97,7 @@ void fuzz_frame(void) {
     if(length < 9)
         return;
 
+    printf("Good input\n");
     // Send Frame
     user_data.data_chunk_recv_cb_called = 0;
     user_data.frame_recv_cb_called = 0;
@@ -105,7 +106,45 @@ void fuzz_frame(void) {
     return;
 }
 
+static int fuzz_many_frames() {
+    nghttp2_session *session;
+    nghttp2_session_callbacks callbacks;
+    my_user_data user_data;
+    
+    memset(&callbacks, 0, sizeof(nghttp2_session_callbacks));
+    callbacks.send_callback = null_send_callback;
+    callbacks.on_frame_recv_callback = on_frame_recv_callback;
+    callbacks.on_begin_frame_callback = on_begin_frame_callback;
+    nghttp2_session_client_new(&session, &callbacks, &user_data);
+    nghttp2_inbound_frame *iframe = &session->iframe;
+    iframe->state = NGHTTP2_IB_READ_FIRST_SETTINGS;
+
+    uint8_t buf[32768];
+    
+    for (;;) {
+        ssize_t nread;
+        ssize_t nproc;
+
+        while ((nread = read(0, buf, sizeof(buf))) == -1)
+            ;
+        if (nread == -1) {
+            return -1;
+        }
+        
+        if (nread == 0) {
+            return -1;
+        }
+        
+        nproc = nghttp2_session_mem_recv(session, buf, nread);
+
+        if (nproc < 0) {
+            return -1;
+        }
+
+    }
+}
+
 int main(int argc, char **argv){
-  fuzz_frame();
+  fuzz_many_frames();
   return 0;
 }
